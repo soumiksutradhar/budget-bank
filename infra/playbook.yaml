@@ -1,6 +1,6 @@
-- name: Configuring Devops-Forge-EC2 instance
-  hosts: webservers
-  become: true
+- name: Configuring Devops-Forge-EC2 instance  # Ansible playbook was installing Nginx previously on the instance, but since the entire
+  hosts: webservers  # architecture runs on Kubernetes, k3s is being installed onto it - a very light-weight version of Kubernetes for low-end
+  become: true  # machines
 
   tasks:
     - name: Updating apt cache
@@ -8,13 +8,29 @@
         update_cache: yes
         cache_valid_time: 3600
 
-    - name: Installing nginx
-      apt:
-        name: nginx
+    - name: Installing k3s
+      shell: curl -sfL https://get.k3s.io | sh -s - --write-kubeconfig-mode 644  # official install script for k3s
+      args:
+        creates: /usr/local/bin/k3s  # binary is downloaded and installed here - registered as a systemd service; a shell command is not idempotent in Ansible, unlike 'apt' or 'service'; so this is how to make Shell tasks idempotent
+    
+    - name: Waiting for k3s to be ready  # k3s doesn't finish immediately after installing, need to wait for kubeconfig file at given path
+      wait_for:
+        path: /etc/rancher/k3s/k3s.yaml
         state: present
-
-    - name: Starting nginx and keeping it running
-      service:
-        name: nginx
-        state: started	# keeps nginx running
-        enabled: yes	# starts and runs nginx upon reboot
+        timeout: 60
+    
+    - name: Creating .kube directory  # this is the standard location where kubectl looks for kubeconfig
+      file:
+        path: /home/ubuntu/.kube
+        state: directory
+        owner: ubuntu
+        mode: '0755'
+    
+    - name: Copying kubeconfig to Ubuntu user  # we need to copy since the path where it's installed is owned by root, GH Actions will SSH
+      copy:  # in as ubuntu
+        src: /etc/rancher/k3s/k3s.yaml
+        dest: /home/ubuntu/.kube/config
+        remote_src: yes  # this is how Ansible knows that source file is on remote machine and not the local machine 
+        owner: ubuntu
+        group: ubuntu
+        mode: '0600'
