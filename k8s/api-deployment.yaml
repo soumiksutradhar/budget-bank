@@ -14,8 +14,8 @@ spec:  # this defines what the Deployment will actually do
     spec:
       containers:
         - name: api  # label for the container inside the pod
-          image: devops-pipeline-forge-api:latest  # the Docker image to run
-          imagePullPolicy: Never  # use local image instead of pulling from DockerHub
+          image: dopester03/budget-bank-api:latest  # the Docker image to run(as image is now on Docker Hub, the line below has been commented)
+          # imagePullPolicy: Never  # use local image instead of pulling from DockerHub
           ports:
             - containerPort: 5000  # tells that the container listens on port 5000, doesn't expose it though
           env:  # these are the environment variables plugged in at runtime for Flask to know where Postgres is

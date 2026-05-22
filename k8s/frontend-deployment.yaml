@@ -14,8 +14,8 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: devops-pipeline-forge-frontend:latest
-          imagePullPolicy: Never
+          image: dopester03/budget-bank-frontend:latest  # as image is now on Docker Hub, line below has been commented
+          # imagePullPolicy: Never
           ports:
             - containerPort: 80
 
