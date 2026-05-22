@@ -33,5 +33,24 @@ jobs:  # jobs is the 3rd top-level field
     runs-on: ubuntu-latest
     needs: build
     steps:
-      - name: Placeholder
-        run: echo "A temporary placeholder for the deploy job"
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Copy k8s manifests to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "k8s/"
+          target: "/home/ubuntu/app"
+      - name: Deploy to k3s
+        uses: appleboy/scp-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            export KUBECONFIG=/home/ubuntu/.kube/config
+            kubectl apply -f /home/ubuntu/app/k8s/
+            kubectl rollout restart deployment api
+            kubectl rollout restart deployment frontend
