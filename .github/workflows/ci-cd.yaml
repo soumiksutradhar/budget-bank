@@ -44,7 +44,7 @@ jobs:  # jobs is the 3rd top-level field
           source: "k8s/"
           target: "/home/ubuntu/app"
       - name: Deploy to k3s
-        uses: appleboy/scp-action@v1.0.3
+        uses: appleboy/scp-action@v0.1.10
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
