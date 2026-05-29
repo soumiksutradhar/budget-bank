@@ -1,6 +1,6 @@
-# Budget Bank — DevOps Pipeline Forge
+# Budget Bank — Forging a DevOps Pipeline
 
-A full-stack expense tracking application built primarily to demonstrate a production-grade DevOps pipeline. The application itself is a 3-tier Monthly Expense Tracker, but the focus of this project is the infrastructure and automation surrounding it.
+A simple expense tracking application built primarily to demonstrate a production-grade DevOps pipeline. The application itself is 3-tier, but the focus of this project is the infrastructure and automation surrounding it.
 
 ---
 
@@ -14,7 +14,7 @@ A full-stack expense tracking application built primarily to demonstrate a produ
 
 ## Infrastructure & DevOps Stack
 
-- **Cloud:** AWS EC2 (ap-south-1, t2.small)
+- **Cloud:** AWS EC2 (t2.small)
 - **Provisioning:** Terraform
 - **Configuration Management:** Ansible
 - **Containerization:** Docker
@@ -48,18 +48,6 @@ A single script `infra/provision.sh` orchestrates the full provisioning flow —
 
 ---
 
-## Why k3s over Minikube or kubeadm
-
-Minikube is a local development tool that requires a hypervisor and desktop environment — unsuitable for a headless EC2 server. kubeadm is the standard Kubernetes installer but requires significant memory overhead, making it impractical on a t2.micro or t2.small instance. k3s is a fully conformant, lightweight Kubernetes distribution designed for exactly this use case — single-node servers with limited resources. It installs as a single binary and runs as a systemd service.
-
----
-
-## Why Nginx Ingress over Traefik
-
-k3s ships with Traefik as its default ingress controller. Nginx ingress was chosen instead because the routing configuration — specifically path-based rewriting using capture groups — is more straightforward with Nginx annotations. The `nginx.ingress.kubernetes.io/rewrite-target: /$2` annotation strips the `/api` prefix before forwarding requests to Flask, so Flask routes remain clean (`/expenses` instead of `/api/expenses`).
-
----
-
 ## CI/CD Pipeline
 
 The pipeline is defined in `.github/workflows/ci-cd.yml` and triggers on every push to `main`.
@@ -69,7 +57,7 @@ The pipeline is defined in `.github/workflows/ci-cd.yml` and triggers on every p
 - Logs into DockerHub
 - Builds and pushes API and frontend images
 
-**Deploy job** (runs only if build succeeds):
+**Deploy job** (depends on build job):
 - Copies k8s manifests to EC2 via SCP
 - SSHes into EC2 and runs `kubectl apply`
 - Restarts API and frontend deployments to pull latest images
@@ -88,12 +76,6 @@ Postgres is intentionally excluded from rollout restarts — it is stateful and 
 | `ingress.yaml` | Nginx Ingress with path rewriting |
 
 The PostgreSQL service is named `db` to match the connection string `postgresql://postgres:postgres@db:5432/expensedb` used by Flask. Service names become DNS hostnames inside the cluster.
-
----
-
-## Why `window.location.origin` for the API base URL
-
-The frontend uses `const API = \`${window.location.origin}/api\`` instead of a hardcoded IP. Since the EC2 public IP changes on every reprovision, hardcoding it would require a frontend rebuild on each infrastructure change. Using `window.location.origin` dynamically resolves to whatever host the page is served from, making the frontend infrastructure-agnostic.
 
 ---
 
@@ -123,28 +105,3 @@ budget-bank/
 ```
 
 ---
-
-## Local Development
-
-Requirements: Docker, Docker Compose
-
-```bash
-git clone https://github.com/dopester03/budget-bank
-cd budget-bank
-docker-compose up --build
-```
-
-The app will be available at `http://localhost` with the API at `http://localhost:5000`.
-
----
-
-## Deployment
-
-Requirements: AWS credentials, Terraform, Ansible, SSH key at `~/.ssh/devops-forge`
-
-```bash
-cd infra
-./provision.sh
-```
-
-This provisions EC2, installs k3s, and configures the Nginx ingress controller. Push to `main` to trigger the CI/CD pipeline and deploy the application.
