@@ -18,7 +18,7 @@ tags = {
 	}
 }
 
-resource "aws_security_group" "devops_forge_sg"{
+resource "aws_security_group" "devops_forge_sg"{	# testing pipeline
 	name = "devops-forge-sg"
 	description = "This security group allows SSH on DevOps-Forge-EC2 instance"
 	
