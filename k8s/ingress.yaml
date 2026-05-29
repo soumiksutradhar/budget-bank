@@ -7,8 +7,7 @@ metadata:
 spec:
   ingressClassName: nginx  # through this, Kubernetes knows which Ingress controller owns this rule
   rules:
-    - host: expense.local
-      http:
+    - http:
         paths:
           - path: /api(/|$)(.*)
             pathType: ImplementationSpecific  # matches any path starting with the given string -> /api in this case

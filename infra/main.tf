@@ -9,7 +9,7 @@ resource "aws_key_pair" "devops_forge_kp"{	# "devops_forge_kp" is a Terraform id
 
 resource "aws_instance" "d03_server"{
 	ami = "ami-0f58b397bc5c1f2e8" # Ubuntu 22.04 image for ap-south-1
-	instance_type = "t2.micro"
+	instance_type = "t2.small"
 	key_name = aws_key_pair.devops_forge_kp.key_name
 	vpc_security_group_ids = [aws_security_group.devops_forge_sg.id]
 

@@ -35,7 +35,7 @@
   <div id="summary"></div>
 
   <script>
-    const API = 'http://localhost:5000';
+    const API = `${window.location.origin}/api`;
 
     async function fetchExpenses() {
       const res = await fetch(`${API}/expenses`);

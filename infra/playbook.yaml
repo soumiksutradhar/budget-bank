@@ -34,3 +34,8 @@
         owner: ubuntu
         group: ubuntu
         mode: '0600'
+    
+    - name: Installing Nginx Ingress Controller to not use Traefik Ingress Controller on EC2 by default
+      shell: kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.10.1/deploy/static/provider/cloud/deploy.yaml
+      environment:
+        KUBECONFIG: /etc/rancher/k3s/k3s.yaml
